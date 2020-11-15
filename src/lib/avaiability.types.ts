@@ -1,11 +1,12 @@
 interface EventSlot {
-  from?: number;
-  to?: number;
+  from: number;
+  to: number;
 }
 
 interface AvailabilityEvent {
-  date?: string;
+  date: string;
   dow?: number;
+  dom?: number;
   doy?: number;
   slots?: EventSlot[];
 }
