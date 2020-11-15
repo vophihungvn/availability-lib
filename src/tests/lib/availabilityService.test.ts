@@ -19,7 +19,7 @@ describe("My test", () => {
   describe("Set unavailability", () => {
     describe("Set unavailability once", () => {
       it("Should run correctly when setUnavailability", () => {
-        const date = moment().date(1).month(10);
+        const date = moment().date(1).month(10).hour(10);
         service.setUnAvailability(
           date.clone().startOf("h"),
           date.clone().endOf("h"),
@@ -34,8 +34,8 @@ describe("My test", () => {
               dow: 0,
               doy: 306,
               slots: [
-                { from: 0, to: 1260 },
-                { from: 1319, to: 1439 },
+                { from: 0, to: 600 },
+                { from: 659, to: 1439 },
               ],
             },
             {
