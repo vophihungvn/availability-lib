@@ -158,4 +158,26 @@ describe("My test", () => {
       });
     });
   });
+
+  describe("Check available", () => {
+    beforeEach(() => {
+      service.setUnAvailability(
+        moment().month(10).date(2).hour(10).startOf("h"),
+        moment().month(10).date(2).hour(10).endOf("h"),
+        Interval.DAILY
+      );
+    });
+
+    it("Should return correctly with given time available", () => {
+      expect(
+        service.isAvailable(moment().month(9).date(2).hour(10).minute(1))
+      ).toBeTruthy();
+    });
+
+    it("Should return correctly with given time unavailable", () => {
+      expect(
+        service.isAvailable(moment().month(10).date(2).hour(10).minute(1))
+      ).toBeFalsy();
+    });
+  });
 });
