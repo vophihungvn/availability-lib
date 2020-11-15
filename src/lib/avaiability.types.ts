@@ -12,6 +12,7 @@ interface AvailabilityEvent {
 }
 
 enum Interval {
+  ONCE = "ONCE",
   DAILY = "DAILY",
   WEEKLY = "WEEKLY",
   MONTHLY = "MONTHLY",

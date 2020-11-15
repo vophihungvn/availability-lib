@@ -1,6 +1,11 @@
 import moment, { Moment } from "moment";
-import { AvailabilityEvent, Interval, IntervalType } from "./avaiability.types";
-import { setUnavailability } from "./availability.util";
+import { AvailabilityEvent, Interval } from "./avaiability.types";
+import {
+  convertNumberToTime,
+  convertTimeToNumber,
+  setUnavailability,
+} from "./availability.util";
+import { DATE_FORMAT } from "./constant";
 
 class AvailabilityService {
   private availabilityEvents: AvailabilityEvent[] = [];
@@ -20,15 +25,12 @@ class AvailabilityService {
     this.initAvaiabilty();
   }
 
-  private convertTimeToNumber = (time: Moment): number =>
-    time.hour() * 60 + time.minute();
-
   private initAvaiabilty = (): void => {
     const currentTime = this.from.clone();
 
     while (currentTime.isBefore(this.to)) {
       const avaiability: AvailabilityEvent = {
-        date: currentTime.format("YYYYMMDD"),
+        date: currentTime.format(DATE_FORMAT),
         dow: currentTime.weekday(),
         dom: currentTime.date(),
         doy: currentTime.dayOfYear(),
@@ -39,16 +41,16 @@ class AvailabilityService {
       let from = 0;
       let to = 0;
       if (currentTime.isBefore(this.from)) {
-        from = this.convertTimeToNumber(this.from);
+        from = convertTimeToNumber(this.from);
       } else {
-        from = this.convertTimeToNumber(currentTime);
+        from = convertTimeToNumber(currentTime);
       }
 
       const endOfCurrentTime = currentTime.clone().endOf("D");
       if (endOfCurrentTime.isBefore(this.to)) {
-        to = this.convertTimeToNumber(endOfCurrentTime);
+        to = convertTimeToNumber(endOfCurrentTime);
       } else {
-        to = this.convertTimeToNumber(this.to);
+        to = convertTimeToNumber(this.to);
       }
 
       avaiability.slots?.push({
@@ -64,6 +66,13 @@ class AvailabilityService {
 
   public getAvaiabilityEvents = (): AvailabilityEvent[] =>
     this.availabilityEvents;
+
+  private setUnAvailabilityOnce = (date: string, from: number, to: number) => {
+    const event = this.availabilityEvents.find((event) => event.date === date);
+    if (event) {
+      event.slots = setUnavailability(event.slots, from, to);
+    }
+  };
 
   private setUnavailabilityByDay = (from: number, to: number) => {
     this.availabilityEvents.forEach((event) => {
@@ -108,9 +117,12 @@ class AvailabilityService {
     to: Moment,
     interval: Interval
   ): void => {
-    const timeFrom = this.convertTimeToNumber(from);
-    const timeTo = this.convertTimeToNumber(to);
+    const timeFrom = convertTimeToNumber(from);
+    const timeTo = convertTimeToNumber(to);
     switch (interval) {
+      case Interval.ONCE:
+        this.setUnAvailabilityOnce(from.format(DATE_FORMAT), timeFrom, timeTo);
+        break;
       case Interval.DAILY:
         this.setUnavailabilityByDay(timeFrom, timeTo);
         break;
@@ -129,15 +141,15 @@ class AvailabilityService {
   };
 
   public isAvailable = (from: Moment, to?: Moment): boolean => {
-    const day = from.format("YYYYMMDD");
+    const day = from.format(DATE_FORMAT);
     const availability = this.availabilityEvents.find(
       (event) => event.date === day
     );
 
     if (!availability) return true;
 
-    const timeFrom = this.convertTimeToNumber(from);
-    let timeTo = to ? this.convertTimeToNumber(to) : timeFrom;
+    const timeFrom = convertTimeToNumber(from);
+    let timeTo = to ? convertTimeToNumber(to) : timeFrom;
 
     const found = availability.slots?.find(
       (slot) => slot.from > timeTo || slot.to < timeFrom
@@ -149,28 +161,44 @@ class AvailabilityService {
   };
 
   // Get available from
-  public getNextAvailability = (from: Moment): number => {
-    const day = from.format("YYYYMMDD");
+  public getNextAvailability = (from: Moment): Moment | undefined => {
+    const day = from.format(DATE_FORMAT);
     const availability = this.availabilityEvents.find(
       (event) => event.date === day
     );
 
-    const timeFrom = this.convertTimeToNumber(from);
+    const timeFrom = convertTimeToNumber(from);
 
     if (availability) {
-      const found = availability.slots?.find((slot) => slot.to < timeFrom);
-      if (!!found) return found.from;
+      const found = availability.slots?.find((slot) => slot.from > timeFrom);
+
+      if (!!found) {
+        const result = moment(availability.date, "DATE_FORMAT");
+        const timeAvail = convertNumberToTime(found.from);
+        result
+          .hour(timeAvail.hour())
+          .minute(timeAvail.minute())
+          .add(1, "minute");
+        return result;
+      }
     }
 
     for (let i = 0; i < this.availabilityEvents.length; i++) {
       if (this.availabilityEvents[i].date > day) {
         if ((this.availabilityEvents[i]?.slots?.length ?? 0) > 0) {
-          return this.availabilityEvents[i]?.slots?.[0]?.from ?? 0;
+          const result = moment(this.availabilityEvents[i].date, "DATE_FORMAT");
+
+          const timeAvail = convertNumberToTime(
+            this.availabilityEvents?.[i]?.slots?.[0]?.from ?? 0
+          );
+          result
+            .hour(timeAvail.hour())
+            .minute(timeAvail.minute())
+            .add(1, "minute");
+          return result;
         }
       }
     }
-
-    return -1; // Cannot find available slot
   };
 }
 
