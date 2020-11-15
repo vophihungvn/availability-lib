@@ -15,6 +15,8 @@ describe("Availability utils", () => {
   }]}
       ${[{ from: 0, to: 1000 }]} | ${200}  | ${300}  | ${[{ from: 0, to: 200 }, { from: 300, to: 1000 }]}
       ${[{ from: 0, to: 1000 }]} | ${2000} | ${3000} | ${[{ from: 0, to: 1000 }]}
+      ${[{ from: 0, to: 1000 }]} | ${500}  | ${3000} | ${[{ from: 0, to: 500 }]}
+      ${undefined}               | ${2000} | ${3000} | ${[]}
     `(
       "should return correct value when ",
       ({ availabilityEvents, from, to, expectedResults }) => {

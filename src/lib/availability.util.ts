@@ -2,9 +2,13 @@ import moment from "moment";
 import { Moment } from "moment";
 import { EventSlot } from "./avaiability.types";
 
-const setUnavailability = (events: EventSlot[] = [], from = 0, to = 0) => {
+const setUnavailability = (
+  events: EventSlot[] = [],
+  from: number,
+  to: number
+) => {
   for (let i = 0; i < events.length; i++) {
-    const { from: currentFrom = 0, to: currentTo = 0 } = events[i];
+    const { from: currentFrom, to: currentTo } = events[i];
     if (currentFrom < from && currentTo > to) {
       events[i] = { from: currentFrom, to: from };
       events.splice(i + 1, 0, { from: to, to: currentTo });
@@ -26,8 +30,8 @@ const setUnavailability = (events: EventSlot[] = [], from = 0, to = 0) => {
 
     if (to > currentTo && from < currentTo) {
       events[i] = {
-        from: from,
-        to: currentTo,
+        from: currentFrom,
+        to: from,
       };
     }
   }

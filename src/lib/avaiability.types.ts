@@ -8,7 +8,7 @@ interface AvailabilityEvent {
   dow?: number;
   dom?: number;
   doy?: number;
-  slots?: EventSlot[];
+  slots: EventSlot[];
 }
 
 enum Interval {

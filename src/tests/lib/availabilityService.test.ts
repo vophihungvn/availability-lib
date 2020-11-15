@@ -1,5 +1,5 @@
 import moment from "moment";
-import { AvailabilityService } from "../../lib/avaiability";
+import { AvailabilityService } from "../../index";
 import { Interval } from "../../lib/avaiability.types";
 
 describe("My test", () => {
@@ -107,7 +107,7 @@ describe("My test", () => {
         service.setUnAvailability(
           moment().month(10).date(2).hour(10).startOf("h"),
           moment().month(10).date(2).hour(10).endOf("h"),
-          Interval.YEARLY
+          Interval.WEEKLY
         );
         expect(service.getAvaiabilityEvents()).toEqual(
           expect.arrayContaining([
@@ -146,7 +146,7 @@ describe("My test", () => {
         service.setUnAvailability(
           moment().month(10).date(2).hour(10).startOf("h"),
           moment().month(10).date(2).hour(10).endOf("h"),
-          Interval.YEARLY
+          Interval.MONTHLY
         );
         expect(service.getAvaiabilityEvents()).toEqual(
           expect.arrayContaining([
@@ -220,24 +220,63 @@ describe("My test", () => {
     });
   });
 
+  describe("Set unexpected duration", () => {
+    it("Should throw error", () => {
+      expect(() =>
+        service.setUnAvailability(
+          moment().month(10).date(2).hour(10).startOf("h"),
+          moment().month(10).date(2).hour(10).endOf("h"),
+          "Another" as Interval
+        )
+      ).toThrow(/Interval not supported/);
+    });
+  });
+
   describe("Check available", () => {
     beforeEach(() => {
       service.setUnAvailability(
         moment().month(10).date(2).hour(10).startOf("h"),
         moment().month(10).date(2).hour(10).endOf("h"),
-        Interval.DAILY
+        Interval.ONCE
       );
     });
 
-    it("Should return correctly with given time available", () => {
+    it("Should return correctly with given time not initiate", () => {
       expect(
-        service.isAvailable(moment().month(9).date(2).hour(10).minute(1))
+        service.isAvailable(moment().month(9).date(2).hour(11).minute(1))
+      ).toBeFalsy();
+    });
+
+    it("Should return correctly with given time available in same date", () => {
+      expect(
+        service.isAvailable(moment().month(10).date(2).hour(11).minute(1))
+      ).toBeTruthy();
+    });
+
+    it("Should return correctly with given time available in next date", () => {
+      expect(
+        service.isAvailable(moment().month(10).date(3).hour(10).minute(1))
+      ).toBeTruthy();
+    });
+
+    it("Should return correctly with given time available with range", () => {
+      const time = moment().month(10).date(3).hour(10).minute(1);
+
+      expect(
+        service.isAvailable(time.clone(), time.clone().minute(20))
       ).toBeTruthy();
     });
 
     it("Should return correctly with given time unavailable", () => {
       expect(
         service.isAvailable(moment().month(10).date(2).hour(10).minute(1))
+      ).toBeFalsy();
+    });
+
+    it("Should return correctly with given time unavailable with range", () => {
+      const time = moment().month(10).date(2).hour(10).minute(1);
+      expect(
+        service.isAvailable(time.clone(), time.clone().minute(20))
       ).toBeFalsy();
     });
   });
