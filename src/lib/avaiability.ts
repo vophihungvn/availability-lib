@@ -173,7 +173,7 @@ class AvailabilityService {
       const found = availability.slots?.find((slot) => slot.from > timeFrom);
 
       if (!!found) {
-        const result = moment(availability.date, "DATE_FORMAT");
+        const result = moment(availability.date, DATE_FORMAT);
         const timeAvail = convertNumberToTime(found.from);
         result
           .hour(timeAvail.hour())
@@ -186,7 +186,7 @@ class AvailabilityService {
     for (let i = 0; i < this.availabilityEvents.length; i++) {
       if (this.availabilityEvents[i].date > day) {
         if ((this.availabilityEvents[i]?.slots?.length ?? 0) > 0) {
-          const result = moment(this.availabilityEvents[i].date, "DATE_FORMAT");
+          const result = moment(this.availabilityEvents[i].date, DATE_FORMAT);
 
           const timeAvail = convertNumberToTime(
             this.availabilityEvents?.[i]?.slots?.[0]?.from ?? 0

@@ -258,5 +258,19 @@ describe("My test", () => {
       expect(result?.hour()).toEqual(11);
       expect(result?.minute()).toEqual(0);
     });
+
+    it("Should return available in the next date", () => {
+      service.setUnAvailability(
+        moment().month(10).date(2).startOf("d"),
+        moment().month(10).date(2).endOf("d"),
+        Interval.ONCE
+      );
+      const result = service.getNextAvailability(
+        moment().month(10).date(2).hour(10).minute(1)
+      );
+      expect(result?.date()).toEqual(3);
+      expect(result?.hour()).toEqual(0);
+      expect(result?.minute()).toEqual(1);
+    });
   });
 });
