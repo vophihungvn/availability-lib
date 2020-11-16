@@ -6,9 +6,11 @@ import {
   setUnavailability,
 } from "./availability.util";
 import { DATE_FORMAT } from "./constant";
+import { EventTree } from "./eventTree";
 
 class AvailabilityService {
   private availabilityEvents: AvailabilityEvent[] = [];
+  private eventTree?: EventTree;
   private from: Moment;
   private to: Moment;
 
@@ -23,6 +25,7 @@ class AvailabilityService {
     this.to = to;
 
     this.initAvaiabilty();
+    this.eventTree = new EventTree(this.getAvaiabilityEvents());
   }
 
   private initAvaiabilty = (): void => {
@@ -142,9 +145,7 @@ class AvailabilityService {
 
   public isAvailable = (from: Moment, to?: Moment): boolean => {
     const day = from.format(DATE_FORMAT);
-    const availability = this.availabilityEvents.find(
-      (event) => event.date === day
-    );
+    const availability = this.eventTree?.getNode(day)?.event;
 
     if (!availability) return false; // not setup for this date
 
@@ -163,9 +164,7 @@ class AvailabilityService {
   // Get available from
   public getNextAvailability = (from: Moment): Moment | undefined => {
     const day = from.format(DATE_FORMAT);
-    const availability = this.availabilityEvents.find(
-      (event) => event.date === day
-    );
+    const availability = this.eventTree?.getNode(day)?.event;
 
     const timeFrom = convertTimeToNumber(from);
 
@@ -200,6 +199,12 @@ class AvailabilityService {
       }
     }
   };
+
+  public getEvent = (date: string): AvailabilityEvent | undefined =>
+    this.availabilityEvents.find((event) => event.date === date);
+
+  public getEventFromTree = (date: string): AvailabilityEvent | undefined =>
+    this.eventTree?.getNode(date)?.event;
 }
 
 export { AvailabilityService };
