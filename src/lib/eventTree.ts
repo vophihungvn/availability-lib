@@ -59,10 +59,20 @@ class EventTree {
   ): Node | undefined => {
     if (currentNode?.event.date === date) return currentNode;
     if (!currentNode?.left && !currentNode?.right) return undefined;
-    return (
-      (currentNode.left && this.getNode(date, currentNode.left)) ||
-      (currentNode.right && this.getNode(date, currentNode.right))
-    );
+
+    if (date > currentNode.event.date) {
+      if (currentNode.right) {
+        return this.getNode(date, currentNode.right);
+      } else {
+        return undefined;
+      }
+    } else {
+      if (currentNode.left) {
+        return this.getNode(date, currentNode.left);
+      } else {
+        return undefined;
+      }
+    }
   };
 }
 
